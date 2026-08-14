@@ -21,15 +21,22 @@ import {
 } from "@/components/ui/sidebar";
 import { startLogin } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { Activity, Bot, Braces, BrainCircuit, CheckSquare2, Gauge, LayoutDashboard, LogOut, PanelLeft, PlaySquare, Settings2, Workflow } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Page 1", path: "/" },
-  { icon: Users, label: "Page 2", path: "/some-path" },
+  { icon: LayoutDashboard, label: "Overview", path: "/" },
+  { icon: Bot, label: "Agents", path: "/agents" },
+  { icon: CheckSquare2, label: "Tasks", path: "/tasks" },
+  { icon: Workflow, label: "Workflows", path: "/workflows" },
+  { icon: Braces, label: "Tools", path: "/tools" },
+  { icon: BrainCircuit, label: "Memory", path: "/memory" },
+  { icon: PlaySquare, label: "Runs & logs", path: "/runs" },
+  { icon: Gauge, label: "Approvals", path: "/approvals" },
+  { icon: Settings2, label: "Settings", path: "/settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -167,16 +174,21 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-semibold tracking-tight truncate">
-                    Navigation
-                  </span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-950 shadow-sm">
+                    <Activity className="h-3.5 w-3.5 text-indigo-300" />
+                  </div>
+                  <div className="flex min-w-0 flex-col leading-none">
+                    <span className="font-semibold tracking-tight truncate text-[15px] text-slate-950">AgentOS</span>
+                    <span className="mt-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-400">Control plane</span>
+                  </div>
                 </div>
-              ) : null}
+              ) : <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-950"><Activity className="h-3.5 w-3.5 text-indigo-300" /></div>}
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
+          <SidebarContent className="gap-0 px-1">
+            {!isCollapsed ? <div className="px-3 pt-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Control plane</div> : null}
             <SidebarMenu className="px-2 py-1">
               {menuItems.map(item => {
                 const isActive = location === item.path;
@@ -186,7 +198,7 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
+                      className={`h-10 rounded-xl transition-all font-medium ${isActive ? "bg-sidebar-accent shadow-sm" : "hover:bg-sidebar-accent/70"}`}
                     >
                       <item.icon
                         className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
@@ -255,7 +267,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 bg-[#f7f8fb] p-4 md:p-6">{children}</main>
       </SidebarInset>
     </>
   );

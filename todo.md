@@ -1,0 +1,23 @@
+# Project TODO
+
+- [x] Establish a modular AgentOS monorepo-style domain structure within the managed application, with clear control-plane and runtime boundaries.
+- [x] Document the Vercel-compatible split-deployment strategy for web/API, worker/runtime, queue, scheduler, relational data, cache, vector, and object storage services.
+- [x] Implement infrastructure adapter contracts for cache, vector store, object storage, queue, scheduler, LLM providers, tool runtime, and agent runtime.
+- [x] Implement tenant-aware data model and authorization seams, permission checks, audit events, validation boundaries, and prompt-injection safeguards.
+- [x] Implement the Agent Registry persistence model and typed APIs for version records, templates, teams, provider/model selection, capabilities, permissions, memory settings, lifecycle state, and agent-tool assignments.
+- [x] Implement the exact task lifecycle: PENDING, QUEUED, RUNNING, WAITING, BLOCKED, REQUIRES_APPROVAL, COMPLETED, FAILED, CANCELLED.
+- [ ] Complete the operations UI for cancellation, retry, timeout control, artifact management, and execution-log detail while retaining the implemented persistence and API support.
+- [ ] Attach a worker-backed workflow executor for sequential/parallel execution, branching, retries, timeouts, webhooks, and schedules; structured workflow definitions and nodes are implemented.
+- [ ] Connect agent-tool assignment editing and a sandbox-backed CodeExecutor implementation; versioned registry, assignment API, MCP boundary, and CodeExecutor interface are implemented.
+- [x] Implement MemoryManager with ConversationMemory, WorkingMemory, LongTermMemory, EpisodicMemory, and SemanticMemory through swappable storage interfaces.
+- [x] Implement an internal event bus using agent.*, task.*, tool.*, workflow.*, and approval.* namespaces.
+- [x] Implement a decoupled job-queue abstraction with enqueue, consume, retry, and cancel operations.
+- [x] Implement human-in-the-loop approval resolution, task resumption handling, and an approvals workspace.
+- [x] Implement LLM provider abstractions, model configuration, structured result handling, usage tracking, and provider-safe execution seams.
+- [ ] Connect worker-produced model/tool traces, queue-job monitoring, retries, and artifacts to the observability UI; the storage model, runs UI, and queue APIs are implemented.
+- [x] Build a polished operational dashboard with metrics, visualizations, recent events, system health, and pending approvals.
+- [ ] Extend management screens with team/template editing, assignment controls, version rollback, workflow graph editing, API-key management, audit-log search, jobs, and artifact inspection.
+- [ ] Expand service and UI-flow test coverage for database-backed AgentOS orchestration journeys; runtime contract and lifecycle tests are implemented.
+- [x] Produce architecture, operational, migration, and security documentation for the initial deployment and future provider migration.
+- [ ] Connect a managed queue worker, scheduler, vector database, encrypted secret vault, cache, and isolated CodeExecutor for production-grade autonomous execution.
+- [ ] Extend the operational UI with complete team/template editing, agent/tool assignment, version rollback, workflow graph editing, API-key management, and audit-log search.

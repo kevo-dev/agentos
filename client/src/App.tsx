@@ -4,13 +4,21 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
+import AgentOS from "./pages/AgentOS";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={AgentOS} />
+      <Route path={"/agents"} component={AgentOS} />
+      <Route path={"/tasks"} component={AgentOS} />
+      <Route path={"/workflows"} component={AgentOS} />
+      <Route path={"/tools"} component={AgentOS} />
+      <Route path={"/memory"} component={AgentOS} />
+      <Route path={"/runs"} component={AgentOS} />
+      <Route path={"/approvals"} component={AgentOS} />
+      <Route path={"/settings"} component={AgentOS} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
