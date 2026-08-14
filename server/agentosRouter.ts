@@ -5,14 +5,18 @@ import {
   assignToolToAgent,
   createAgentTeam,
   createAgentVersion,
+  createApiKey,
   createAgent,
   createTask,
   createTool,
   createWorkflow,
+  createWorkflowVersion,
   getDashboard,
   listAgentTeams,
   listAgentVersions,
   listArtifacts,
+  listApiKeys,
+  listAuditLogs,
   listJobs,
   listAgents,
   listApprovals,
@@ -22,6 +26,7 @@ import {
   listTools,
   listWorkflows,
   resolveApproval,
+  revokeApiKey,
   requestApproval,
   retryTask,
   runAgent,
@@ -58,6 +63,7 @@ export const agentosRouter = router({
   workflows: router({
     list: protectedProcedure.query(({ ctx }) => asProcedureError(() => listWorkflows(viewer(ctx.user)))),
     create: protectedProcedure.input(z.object({ name: z.string().min(2).max(160), description: z.string().max(2000).optional(), definition: z.object({ version: z.literal(1), nodes: z.array(z.object({ id: z.string().min(1).max(100), type: z.enum(["TRIGGER", "AGENT", "TOOL", "CONDITION", "APPROVAL", "LOOP", "OUTPUT"]), name: z.string().min(1).max(160), config: z.record(z.string(), z.unknown()), next: z.array(z.string()).optional() })), edges: z.array(z.object({ source: z.string(), target: z.string(), condition: z.string().optional() })) }) })).mutation(({ ctx, input }) => asProcedureError(() => createWorkflow(viewer(ctx.user), input))),
+    createVersion: protectedProcedure.input(z.object({ workflowId: z.string().min(6), definition: z.object({ version: z.literal(1), nodes: z.array(z.object({ id: z.string().min(1).max(100), type: z.enum(["TRIGGER", "AGENT", "TOOL", "CONDITION", "APPROVAL", "LOOP", "OUTPUT"]), name: z.string().min(1).max(160), config: z.record(z.string(), z.unknown()), next: z.array(z.string()).optional() })), edges: z.array(z.object({ source: z.string(), target: z.string(), condition: z.string().optional() })) }) })).mutation(({ ctx, input }) => asProcedureError(() => createWorkflowVersion(viewer(ctx.user), input.workflowId, input.definition))),
   }),
   tools: router({
     list: protectedProcedure.query(({ ctx }) => asProcedureError(() => listTools(viewer(ctx.user)))),
@@ -68,6 +74,14 @@ export const agentosRouter = router({
   approvals: router({
     list: protectedProcedure.query(({ ctx }) => asProcedureError(() => listApprovals(viewer(ctx.user)))),
     resolve: protectedProcedure.input(z.object({ approvalId: z.string().min(6), decision: z.enum(["APPROVED", "REJECTED"]), note: z.string().max(1000).optional() })).mutation(({ ctx, input }) => asProcedureError(() => resolveApproval(viewer(ctx.user), input.approvalId, input.decision, input.note))),
+  }),
+  governance: router({
+    apiKeys: router({
+      list: protectedProcedure.query(({ ctx }) => asProcedureError(() => listApiKeys(viewer(ctx.user)))),
+      create: protectedProcedure.input(z.object({ name: z.string().min(2).max(160), scopes: z.array(z.string().min(2).max(120)).min(1).max(20) })).mutation(({ ctx, input }) => asProcedureError(() => createApiKey(viewer(ctx.user), input))),
+      revoke: protectedProcedure.input(z.object({ id: z.string().min(6) })).mutation(({ ctx, input }) => asProcedureError(() => revokeApiKey(viewer(ctx.user), input.id))),
+    }),
+    audit: protectedProcedure.input(z.object({ query: z.string().max(120).optional() }).optional()).query(({ ctx, input }) => asProcedureError(() => listAuditLogs(viewer(ctx.user), input?.query))),
   }),
   runs: router({ list: protectedProcedure.query(({ ctx }) => asProcedureError(() => listRuns(viewer(ctx.user)))), jobs: protectedProcedure.query(({ ctx }) => asProcedureError(() => listJobs(viewer(ctx.user)))), artifacts: protectedProcedure.query(({ ctx }) => asProcedureError(() => listArtifacts(viewer(ctx.user)))) }),
 });

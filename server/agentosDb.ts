@@ -1,4 +1,5 @@
 import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
 import { nanoid } from "nanoid";
 import {
   agentDefinitions,
@@ -6,6 +7,7 @@ import {
   agentTeams,
   agentTools,
   agentVersions,
+  apiKeys,
   approvals,
   artifacts,
   auditLogs,
@@ -364,6 +366,28 @@ export async function createTool(viewer: Viewer, input: { name: string; descript
   return { id };
 }
 
+export async function createWorkflowVersion(viewer: Viewer, workflowId: string, definition: WorkflowDefinition) {
+  const db = await getDb();
+  if (!db) throw new Error("AgentOS storage is not available.");
+  const { organization } = await getWorkspace(viewer);
+  const workflow = await db.select().from(workflows).where(and(eq(workflows.id, workflowId), eq(workflows.organizationId, organization.id))).limit(1);
+  if (!workflow[0]) throw new Error("Workflow not found.");
+  const nodeKeys = definition.nodes.map(node => node.id);
+  if (new Set(nodeKeys).size !== nodeKeys.length) throw new Error("Workflow node identifiers must be unique.");
+  if (!definition.nodes.some(node => node.type === "TRIGGER")) throw new Error("Every workflow requires a trigger node.");
+  if (definition.edges.some(edge => !nodeKeys.includes(edge.source) || !nodeKeys.includes(edge.target))) throw new Error("Every workflow edge must reference declared nodes.");
+  const version = workflow[0].currentVersion + 1;
+  const versionId = identifier();
+  await db.transaction(async tx => {
+    await tx.insert(workflowVersions).values({ id: versionId, workflowId, version, definition: definition as unknown as Record<string, unknown>, createdBy: viewer.id });
+    if (definition.nodes.length) await tx.insert(workflowNodes).values(definition.nodes.map(node => ({ id: identifier(), workflowVersionId: versionId, nodeKey: node.id, type: node.type, name: node.name, config: node.config })));
+    await tx.update(workflows).set({ currentVersion: version }).where(eq(workflows.id, workflowId));
+  });
+  await appendEvent({ organizationId: organization.id, type: "workflow.versioned", aggregateId: workflowId, payload: { version, nodeCount: definition.nodes.length } });
+  await audit({ organizationId: organization.id, actorUserId: viewer.id, action: "workflow.version.create", entityType: "workflow", entityId: workflowId, metadata: { version } });
+  return { version };
+}
+
 export async function listApprovals(viewer: Viewer) {
   const db = await getDb();
   if (!db) throw new Error("AgentOS storage is not available.");
@@ -396,7 +420,7 @@ export async function listRuns(viewer: Viewer) {
   const db = await getDb();
   if (!db) throw new Error("AgentOS storage is not available.");
   const { organization } = await getWorkspace(viewer);
-  return db.select({ execution: taskExecutions, taskTitle: tasks.title, agentName: agentDefinitions.name }).from(taskExecutions).innerJoin(tasks, eq(taskExecutions.taskId, tasks.id)).leftJoin(agentDefinitions, eq(taskExecutions.agentId, agentDefinitions.id)).where(eq(tasks.organizationId, organization.id)).orderBy(desc(taskExecutions.createdAt)).limit(50);
+  return db.select({ execution: taskExecutions, taskTitle: tasks.title, taskStatus: tasks.status, parentTaskId: tasks.parentTaskId, agentName: agentDefinitions.name }).from(taskExecutions).innerJoin(tasks, eq(taskExecutions.taskId, tasks.id)).leftJoin(agentDefinitions, eq(taskExecutions.agentId, agentDefinitions.id)).where(eq(tasks.organizationId, organization.id)).orderBy(desc(taskExecutions.createdAt)).limit(50);
 }
 
 export async function listArtifacts(viewer: Viewer) {
@@ -411,4 +435,43 @@ export async function listJobs(viewer: Viewer) {
   if (!db) throw new Error("AgentOS storage is not available.");
   const { organization } = await getWorkspace(viewer);
   return db.select().from(jobs).where(eq(jobs.organizationId, organization.id)).orderBy(desc(jobs.createdAt)).limit(50);
+}
+
+export async function listApiKeys(viewer: Viewer) {
+  const db = await getDb();
+  if (!db) throw new Error("AgentOS storage is not available.");
+  const { organization } = await getWorkspace(viewer);
+  return db.select({ id: apiKeys.id, name: apiKeys.name, prefix: apiKeys.prefix, scopes: apiKeys.scopes, lastUsedAt: apiKeys.lastUsedAt, expiresAt: apiKeys.expiresAt, revokedAt: apiKeys.revokedAt, createdAt: apiKeys.createdAt }).from(apiKeys).where(eq(apiKeys.organizationId, organization.id)).orderBy(desc(apiKeys.createdAt));
+}
+
+export async function createApiKey(viewer: Viewer, input: { name: string; scopes: string[]; expiresAt?: Date }) {
+  if (viewer.role !== "admin") throw new Error("Only workspace administrators can issue API keys.");
+  const db = await getDb();
+  if (!db) throw new Error("AgentOS storage is not available.");
+  const { organization } = await getWorkspace(viewer);
+  const secret = randomBytes(32).toString("base64url");
+  const prefix = `agos_${secret.slice(0, 8)}`;
+  const token = `${prefix}_${secret.slice(8)}`;
+  const id = identifier();
+  await db.insert(apiKeys).values({ id, organizationId: organization.id, name: input.name, prefix, hashedSecret: createHash("sha256").update(token).digest("hex"), scopes: input.scopes, expiresAt: input.expiresAt ?? null, createdBy: viewer.id });
+  await audit({ organizationId: organization.id, actorUserId: viewer.id, action: "api_key.create", entityType: "api_key", entityId: id, metadata: { name: input.name, scopes: input.scopes } });
+  return { id, token, prefix };
+}
+
+export async function revokeApiKey(viewer: Viewer, id: string) {
+  if (viewer.role !== "admin") throw new Error("Only workspace administrators can revoke API keys.");
+  const db = await getDb();
+  if (!db) throw new Error("AgentOS storage is not available.");
+  const { organization } = await getWorkspace(viewer);
+  await db.update(apiKeys).set({ revokedAt: new Date() }).where(and(eq(apiKeys.id, id), eq(apiKeys.organizationId, organization.id)));
+  await audit({ organizationId: organization.id, actorUserId: viewer.id, action: "api_key.revoke", entityType: "api_key", entityId: id });
+}
+
+export async function listAuditLogs(viewer: Viewer, query?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("AgentOS storage is not available.");
+  const { organization } = await getWorkspace(viewer);
+  const entries = await db.select().from(auditLogs).where(eq(auditLogs.organizationId, organization.id)).orderBy(desc(auditLogs.createdAt)).limit(100);
+  const normalized = query?.trim().toLowerCase();
+  return normalized ? entries.filter(entry => `${entry.action} ${entry.entityType} ${entry.entityId ?? ""}`.toLowerCase().includes(normalized)) : entries;
 }

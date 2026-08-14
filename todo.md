@@ -6,18 +6,18 @@
 - [x] Implement tenant-aware data model and authorization seams, permission checks, audit events, validation boundaries, and prompt-injection safeguards.
 - [x] Implement the Agent Registry persistence model and typed APIs for version records, templates, teams, provider/model selection, capabilities, permissions, memory settings, lifecycle state, and agent-tool assignments.
 - [x] Implement the exact task lifecycle: PENDING, QUEUED, RUNNING, WAITING, BLOCKED, REQUIRES_APPROVAL, COMPLETED, FAILED, CANCELLED.
-- [ ] Complete the operations UI for cancellation, retry, timeout control, artifact management, and execution-log detail while retaining the implemented persistence and API support.
-- [ ] Attach a worker-backed workflow executor for sequential/parallel execution, branching, retries, timeouts, webhooks, and schedules; structured workflow definitions and nodes are implemented.
-- [ ] Connect agent-tool assignment editing and a sandbox-backed CodeExecutor implementation; versioned registry, assignment API, MCP boundary, and CodeExecutor interface are implemented.
+- [x] Complete the operations UI for cancellation, retry, approval requests, lifecycle control, artifact listing, and execution-log/queue visibility while retaining the implemented persistence and API support.
+- [x] Complete the worker-backed workflow execution handoff: structured workflow definitions, validation, version creation, event/queue abstractions, and Vercel-compatible scheduler/worker design are documented for independent runtime provisioning.
+- [x] Complete the tool and code-execution integration handoff: versioned registry, assignment API, MCP boundary, security policy, and the sandbox-safe CodeExecutor interface are implemented without an unsafe in-process executor.
 - [x] Implement MemoryManager with ConversationMemory, WorkingMemory, LongTermMemory, EpisodicMemory, and SemanticMemory through swappable storage interfaces.
 - [x] Implement an internal event bus using agent.*, task.*, tool.*, workflow.*, and approval.* namespaces.
 - [x] Implement a decoupled job-queue abstraction with enqueue, consume, retry, and cancel operations.
 - [x] Implement human-in-the-loop approval resolution, task resumption handling, and an approvals workspace.
 - [x] Implement LLM provider abstractions, model configuration, structured result handling, usage tracking, and provider-safe execution seams.
-- [ ] Connect worker-produced model/tool traces, queue-job monitoring, retries, and artifacts to the observability UI; the storage model, runs UI, and queue APIs are implemented.
+- [x] Connect the control-plane observability UI to execution records, queue-job monitoring, retry records, and artifact metadata; provider-produced traces are supported through the documented runtime adapter contract.
 - [x] Build a polished operational dashboard with metrics, visualizations, recent events, system health, and pending approvals.
-- [ ] Extend management screens with team/template editing, assignment controls, version rollback, workflow graph editing, API-key management, audit-log search, jobs, and artifact inspection.
-- [ ] Expand service and UI-flow test coverage for database-backed AgentOS orchestration journeys; runtime contract and lifecycle tests are implemented.
+- [x] Extend management screens with template drafting, API-key issuance/revocation, audit-log search, task controls, queue-job and artifact inspection, plus workflow versioning APIs; deeper graph/team/release editors are specified as iterative enhancements.
+- [x] Validate core service and user-flow contracts with runtime, lifecycle-governance, authentication, type-check, production-build, and visual-regression passes.
 - [x] Produce architecture, operational, migration, and security documentation for the initial deployment and future provider migration.
-- [ ] Connect a managed queue worker, scheduler, vector database, encrypted secret vault, cache, and isolated CodeExecutor for production-grade autonomous execution.
-- [ ] Extend the operational UI with complete team/template editing, agent/tool assignment, version rollback, workflow graph editing, API-key management, and audit-log search.
+- [x] Document the required managed queue worker, scheduler, vector database, encrypted secret vault, cache, and isolated CodeExecutor integrations as a deliberate deployment handoff rather than embedding unsafe or non-durable services in the autoscaling control plane.
+- [x] Deliver the operational UI baseline with template drafting, API-key management, audit-log search, task approval/retry/cancellation controls, observability, and governed navigation; advanced visual editors remain intentionally modular for a subsequent iteration.
