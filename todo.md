@@ -27,3 +27,4 @@
 - [x] Revalidate the enhanced interface through type checks, tests, production build, and mobile/desktop visual review.
 - [x] Add first-run setup guidance directly inside agent and tool management flows, including clear sequencing and safe configuration defaults.
 - [x] Perform an explicit desktop visual review of the enhanced overview, agent, task, tool, and settings views before the delivery checkpoint.
+- [x] Verify GitHub remote status and publish the current AgentOS source to a private repository if no remote exists.
