@@ -21,3 +21,9 @@
 - [x] Produce architecture, operational, migration, and security documentation for the initial deployment and future provider migration.
 - [x] Document the required managed queue worker, scheduler, vector database, encrypted secret vault, cache, and isolated CodeExecutor integrations as a deliberate deployment handoff rather than embedding unsafe or non-durable services in the autoscaling control plane.
 - [x] Deliver the operational UI baseline with template drafting, API-key management, audit-log search, task approval/retry/cancellation controls, observability, and governed navigation; advanced visual editors remain intentionally modular for a subsequent iteration.
+- [x] Strengthen the AgentOS product identity with a more ownable visual system, operational color semantics, and premium dashboard hierarchy.
+- [x] Improve information density and actionability across the dashboard, including guided next actions and clearer runtime-readiness communication.
+- [x] Enhance empty states and management flows so first-time configuration is more self-explanatory and efficient.
+- [x] Revalidate the enhanced interface through type checks, tests, production build, and mobile/desktop visual review.
+- [x] Add first-run setup guidance directly inside agent and tool management flows, including clear sequencing and safe configuration defaults.
+- [x] Perform an explicit desktop visual review of the enhanced overview, agent, task, tool, and settings views before the delivery checkpoint.
